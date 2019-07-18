@@ -23,9 +23,9 @@ Theorem two_point_per_line:
                                       on l1 p -> ~ on l1 p) \/
                   (exists (p: Point), on l1 p /\ on l2 p))
         (line: Line),
-  exists (pp: Point*Point),
-           ~(fst pp = snd pp) /\
-           on line (fst pp) /\ on line (snd pp).
+  exists (p1 p2: Point),
+           ~(p1 = p2) /\
+           on line p1 /\ on line p2.
 Proof.
  intros.
  destruct (point_on_line line) as [p1in H].
@@ -42,10 +42,10 @@ Proof.
  clear ptmp.
  destruct H as [p2 Hp2out_l1].
  destruct (exclude p2 line).
- - exists (p1in,p2).
+ - exists p1in, p2.
    split.
    + intro.
-     destruct on_l1. simpl in H0.
+     destruct on_l1.
      rewrite H0 in H1.
      exact (Hp2out_l1 H1).
    + split.
@@ -58,11 +58,11 @@ Proof.
      contradiction (H H1).
    + destruct H0 as [p3 Hp3].
      destruct Hp3 as [Hp3_line Hp2_l2].
-     exists (p1in,p3).
+     exists p1in,p3.
      split.
      * destruct Hl2 as [_ Hl2].
        destruct (Hl2 p1in) as [H0 _].
-       intro. simpl in H1. subst.
+       intro. subst.
        exact (H0 (proj1 on_l1) Hp2_l2).
      * split.
        ** exact Hp1line.
