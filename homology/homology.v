@@ -5,9 +5,9 @@ Unset Printing Implicit Defensive.
 
 Section Complex.
 
-Variable complex : nat -> finType.
+Variable complex : nat -> Type.
 
-Definition rgrp (n : nat) := Finite.sort (complex n) -> int.
+Definition rgrp (n : nat) := complex n -> int.
 
 Definition radd {n : nat} (a b : rgrp n) : rgrp n :=
   fun x => GRing.add (a x) (b x).
@@ -32,12 +32,21 @@ Proof.
   apply GRing.addrC.
 Qed.
 
-Definition boundsRel (n : nat) := Finite.sort (complex n) -> Finite.sort (complex n.+1) -> int.
+Definition boundsRel (n : nat) := complex n -> complex n.+1 -> int.
+Definition boundsRelNZf (n : nat) := complex n.+1 -> list (complex n).
+Definition boundsRelNZb (n : nat) := complex n -> list (complex n.+1).
 
 Variable bounds : forall n, boundsRel n.
+Variable boundsNZf : forall n, boundsRelNZf n. 
+Variable boundsRestrf : forall (n : nat) (f : complex n) (t : complex n.+1),
+                          bounds n f t <> 0 -> List.In f (boundsNZf n t).
+Variable boundsNZb : forall n, boundsRelNZb n. 
+Variable boundsRestrb : forall (n : nat) (f : complex n.+1) (t : complex n),
+                          bounds n t f <> 0 -> List.In f (boundsNZb n t).
 
 Definition hdelta {n : nat} (g: rgrp n) : rgrp n.+1 :=
-  fun y => foldr (fun (x y : int) => GRing.add x y) 0 (map (fun z => intRing.mulz (bounds n z y) (g z)) (enum (complex n))).
+  fun y => foldr (fun (x y : int) => GRing.add x y) 0
+           (map (fun z => intRing.mulz (bounds n z y) (g z)) (boundsNZf n y)).
 
 Lemma hdelta_morf {n : nat} (a b : rgrp n): hdelta (radd a b) = radd (hdelta a) (hdelta b).
 Proof.
@@ -45,7 +54,7 @@ Proof.
   move => t.
   rewrite /hdelta.
   rewrite [in RHS]/radd.
-  move : (enum (complex n)).
+  move : (boundsNZf n t).
   elim => //=.
   rewrite !/radd.
   move => a0 l IH.
